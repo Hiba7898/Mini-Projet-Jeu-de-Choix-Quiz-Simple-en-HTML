@@ -153,6 +153,7 @@
             align-items: center;
             margin-right: 15px;
             font-weight: bold;
+            flex-shrink: 0; /* Empêche le cercle de rétrécir */
         }
 
         .option.correct .option-prefix {
@@ -165,6 +166,12 @@
 
         .option-text {
             flex: 1;
+            display: block; /* Assure que le texte est affiché */
+            visibility: visible; /* Assure que le texte est visible */
+            color: var(--dark-color);
+            margin-left: 10px; /* Espace entre le cercle et le texte */
+            font-size: 1rem; /* Taille de texte lisible */
+            word-break: break-word; /* Empêche le texte de déborder */
         }
 
         .feedback {
@@ -890,7 +897,6 @@
         const currentQuestionEl = document.getElementById('current-question');
         const totalQuestionsEl = document.getElementById('total-questions');
         const scoreEl = document.getElementById('score');
-
         const progressBar = document.getElementById('progress-bar');
         const nextBtn = document.getElementById('next-btn');
         const previousBtn = document.getElementById('previous-btn');
@@ -967,6 +973,9 @@
                     difficultyIndicator.className = 'difficulty-badge medium';
             }
             
+            // Debug: vérifier que les questions sont bien chargées
+            console.log("Questions chargées:", currentQuestions);
+            
             // Mélanger les questions
             shuffleArray(currentQuestions);
             
@@ -1031,27 +1040,35 @@
             document.querySelector('.content').classList.add('fade-in');
         }
         
-        // Générer les options de réponse
+        // Générer les options de réponse - VERSION MODIFIÉE POUR CORRIGER LE PROBLÈME D'AFFICHAGE
         function generateOptions() {
-    optionsContainer.innerHTML = '';
-    
-    const currentOptions = currentQuestions[currentQuestionIndex].options;
-    const optionLabels = ['A', 'B', 'C', 'D'];
-    
-    currentOptions.forEach((option, index) => {
-        const optionElement = document.createElement('div');
-        optionElement.className = 'option';
-        
-        // Version simplifiée avec texte intégré directement
-        optionElement.innerHTML = `
-            <strong>${optionLabels[index]}</strong> - ${option.text}
-        `;
-        
-        optionElement.dataset.index = index;
-        optionElement.addEventListener('click', () => selectOption(optionElement, index));
-        optionsContainer.appendChild(optionElement);
-    });
-}
+            optionsContainer.innerHTML = '';
+            
+            const currentOptions = currentQuestions[currentQuestionIndex].options;
+            const optionLabels = ['A', 'B', 'C', 'D'];
+            
+            // Vérifier si les options sont chargées correctement
+            console.log("Options de la question:", currentOptions);
+            
+            currentOptions.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.className = 'option';
+                
+                // Structure simplifiée pour garantir l'affichage du texte
+                optionElement.innerHTML = `
+                    <div class="option-prefix">${optionLabels[index]}</div>
+                    <strong style="margin-left: 15px; flex: 1; display: block;">${option.text}</strong>
+                `;
+                
+                optionElement.dataset.index = index;
+                
+                // Debug: vérifier l'option créée
+                console.log(`Option ${optionLabels[index]} créée:`, option.text);
+                
+                optionElement.addEventListener('click', () => selectOption(optionElement, index));
+                optionsContainer.appendChild(optionElement);
+            });
+        }
         
         // Sélectionner une option
         function selectOption(optionElement, index) {
