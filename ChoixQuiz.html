@@ -1,0 +1,1444 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz HTML Interactif</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --success-color: #2ecc71;
+            --error-color: #e74c3c;
+            --neutral-color: #ecf0f1;
+            --dark-color: #34495e;
+            --light-color: #f9f9f9;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: var(--dark-color);
+            background-attachment: fixed;
+        }
+
+        .quiz-container {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 800px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        .quiz-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+
+        .progress-container {
+            height: 8px;
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+            margin-top: 15px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: white;
+            width: 0%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .content {
+            padding: 25px;
+        }
+
+        .question-container {
+            margin-bottom: 25px;
+        }
+
+        .question-number {
+            font-size: 0.9rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .question {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        .options-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .option {
+            background-color: var(--light-color);
+            border: 2px solid #ddd;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .option.selected {
+            border-color: var(--primary-color);
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+
+        .option.correct {
+            border-color: var(--success-color);
+            background-color: rgba(46, 204, 113, 0.1);
+        }
+
+        .option.wrong {
+            border-color: var(--error-color);
+            background-color: rgba(231, 76, 60, 0.1);
+        }
+
+        .option-prefix {
+            background-color: var(--primary-color);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 15px;
+            font-weight: bold;
+        }
+
+        .option.correct .option-prefix {
+            background-color: var(--success-color);
+        }
+
+        .option.wrong .option-prefix {
+            background-color: var(--error-color);
+        }
+
+        .option-text {
+            flex: 1;
+        }
+
+        .feedback {
+            text-align: center;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            font-weight: 600;
+            display: none;
+        }
+
+        .feedback.correct {
+            background-color: rgba(46, 204, 113, 0.2);
+            color: var(--success-color);
+        }
+
+        .feedback.wrong {
+            background-color: rgba(231, 76, 60, 0.2);
+            color: var(--error-color);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 120px;
+        }
+
+        .btn:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-icon {
+            margin-right: 8px;
+        }
+
+        .timer-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+        }
+
+        .score-container {
+            background-color: var(--light-color);
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            display: none;
+        }
+
+        .score-title {
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        .score-info {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: var(--dark-color);
+        }
+
+        .score-message {
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        .score-btn-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .badge-container {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 2.5rem;
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .badge::after {
+            content: attr(data-title);
+            position: absolute;
+            bottom: -30px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: var(--dark-color);
+            width: 120px;
+            text-align: center;
+        }
+
+        .leaderboard {
+            margin-top: 30px;
+        }
+
+        .leaderboard-title {
+            font-size: 1.3rem;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .leaderboard-list {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .leaderboard-item {
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+        }
+
+        .leaderboard-item:last-child {
+            border-bottom: none;
+        }
+
+        .leaderboard-rank {
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: var(--primary-color);
+            width: 30px;
+        }
+
+        .leaderboard-score {
+            font-weight: bold;
+        }
+
+        .leaderboard-name {
+            flex: 1;
+            margin-left: 15px;
+        }
+
+        .highlight {
+            background-color: rgba(52, 152, 219, 0.1);
+            font-weight: bold;
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: #f2d74e;
+            opacity: 0;
+            top: 0;
+            animation: confetti-fall linear forwards;
+        }
+
+        @keyframes confetti-fall {
+            0% {
+                opacity: 1;
+                top: -10px;
+                transform: translateX(0) rotateZ(0deg);
+            }
+            100% {
+                opacity: 0;
+                top: 100vh;
+                transform: translateX(100px) rotateZ(360deg);
+            }
+        }
+
+        /* Difficulté badges */
+        .difficulty-badge {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .difficulty-badge.easy {
+            background-color: #27ae60;
+        }
+
+        .difficulty-badge.medium {
+            background-color: #f39c12;
+        }
+
+        .difficulty-badge.hard {
+            background-color: #e74c3c;
+        }
+
+        .hint-container {
+            margin-top: 15px;
+            background-color: rgba(52, 152, 219, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-color);
+            display: none;
+        }
+
+        .hint-button {
+            background-color: transparent;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-top: 15px;
+        }
+
+        .hint-button:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+
+        .hint-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: 15px;
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            animation: modal-appear 0.3s ease;
+        }
+
+        @keyframes modal-appear {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #aaa;
+        }
+
+        .modal-close:hover {
+            color: var(--dark-color);
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .modal-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        /* Clignotement de timer */
+        @keyframes timer-pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); background-color: rgba(231, 76, 60, 0.4); }
+            100% { transform: scale(1); }
+        }
+
+        .timer-warning {
+            animation: timer-pulse 1s infinite;
+        }
+
+        /* Responsive design */
+        @media (max-width: 600px) {
+            .quiz-container {
+                border-radius: 10px;
+            }
+
+            .content {
+                padding: 15px;
+            }
+
+            .question {
+                font-size: 1.1rem;
+            }
+
+            .option {
+                padding: 12px;
+            }
+
+            .controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .badge {
+                width: 80px;
+                height: 80px;
+                font-size: 2rem;
+            }
+
+            .badge-container {
+                gap: 10px;
+            }
+
+            .score-btn-container {
+                flex-direction: column;
+            }
+
+            .modal-content {
+                padding: 20px;
+            }
+        }
+
+        /* Animation d'entrée pour les questions */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <!-- Écran de démarrage -->
+        <div id="start-screen">
+            <header>
+                <h1>Quiz HTML Interactif</h1>
+                <p>Testez vos connaissances en HTML et CSS</p>
+            </header>
+            <div class="content">
+                <p>Ce quiz contient des questions sur les bases du HTML et CSS. Montrez vos compétences et gagnez des badges!</p>
+                
+                <div style="margin: 30px 0;">
+                    <h3 style="margin-bottom: 15px; color: var(--primary-color);">Choisissez la difficulté:</h3>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button id="easy-btn" class="btn" style="background-color: #27ae60;">Facile</button>
+                        <button id="medium-btn" class="btn" style="background-color: #f39c12;">Moyen</button>
+                        <button id="hard-btn" class="btn" style="background-color: #e74c3c;">Difficile</button>
+                    </div>
+                </div>
+                
+                <div style="margin: 30px 0;">
+                    <h3 style="margin-bottom: 15px; color: var(--primary-color);">Instructions:</h3>
+                    <ul style="padding-left: 20px; line-height: 1.6;">
+                        <li>Chaque question a un minuteur</li>
+                        <li>Vous gagnez plus de points en répondant plus vite</li>
+                        <li>Utilisez les indices si vous êtes bloqué (mais cela réduit les points)</li>
+                        <li>Complétez le quiz pour gagner des badges</li>
+                    </ul>
+                </div>
+                
+                <button id="start-btn" class="btn" style="width: 100%;">Commencer le Quiz</button>
+            </div>
+        </div>
+
+        <!-- Écran du quiz -->
+        <div id="quiz-screen" style="display: none;">
+            <header>
+                <div class="difficulty-badge" id="difficulty-indicator">Moyen</div>
+                <h1>Quiz HTML</h1>
+                <div class="timer-container" id="timer">30</div>
+                <div class="quiz-info">
+                    <div>Question: <span id="current-question">1</span>/<span id="total-questions">10</span></div>
+                    <div>Score: <span id="score">0</span></div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" id="progress-bar"></div>
+                </div>
+            </header>
+            
+            <div class="content fade-in">
+                <div class="question-container">
+                    <div class="question-number" id="question-number">Question 1</div>
+                    <div class="question" id="question-text">Que signifie HTML?</div>
+                </div>
+                
+                <div class="options-container" id="options-container">
+                    <!-- Les options seront ajoutées dynamiquement ici -->
+                </div>
+                
+                <div class="hint-container" id="hint-container">
+                    <p id="hint-text">Indice: Pensez à ce que chaque lettre représente dans l'acronyme.</p>
+                </div>
+                
+                <button id="hint-btn" class="hint-button">Afficher un indice</button>
+                
+                <div class="feedback" id="feedback"></div>
+                
+                <div class="controls">
+                    <button id="previous-btn" class="btn" disabled>
+                        <span class="btn-icon">←</span> Précédent
+                    </button>
+                    <button id="next-btn" class="btn" disabled>
+                        Suivant <span class="btn-icon">→</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Écran des résultats -->
+        <div id="results-screen" style="display: none;">
+            <header>
+                <h1>Résultats du Quiz</h1>
+            </header>
+            
+            <div class="content">
+                <div class="score-container" style="display: block;">
+                    <div class="score-title">Quiz Terminé!</div>
+                    <div class="score-info"><span id="final-score">0</span>/<span id="max-score">100</span> points</div>
+                    <div class="score-message" id="score-message">Bon travail! Vous avez de bonnes connaissances en HTML.</div>
+                    
+                    <div class="badge-container">
+                        <div class="badge" style="background-color: #f1c40f;" data-title="Rapidité" id="speed-badge">⚡</div>
+                        <div class="badge" style="background-color: #e74c3c;" data-title="Précision" id="accuracy-badge">🎯</div>
+                        <div class="badge" style="background-color: #3498db;" data-title="Connaissances" id="knowledge-badge">🧠</div>
+                    </div>
+                    
+                    <div class="leaderboard">
+                        <div class="leaderboard-title">Classement</div>
+                        <div class="leaderboard-list" id="leaderboard-list">
+                            <!-- Le classement sera ajouté dynamiquement ici -->
+                        </div>
+                    </div>
+                    
+                    <div class="score-btn-container">
+                        <button id="share-btn" class="btn">
+                            <span class="btn-icon">📱</span> Partager
+                        </button>
+                        <button id="restart-btn" class="btn">
+                            <span class="btn-icon">🔄</span> Rejouer
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modale pour enregistrer le score -->
+    <div class="modal" id="name-modal">
+        <div class="modal-content">
+            <button class="modal-close" id="modal-close">&times;</button>
+            <h2 class="modal-title">Enregistrez votre score</h2>
+            <p>Entrez votre nom pour sauvegarder votre score dans le classement:</p>
+            <input type="text" class="modal-input" id="name-input" placeholder="Votre nom">
+            <button class="btn" id="save-score-btn">Sauvegarder</button>
+        </div>
+    </div>
+
+    <script>
+        // Questions du quiz
+        const easyQuestions = [
+            {
+                question: "Que signifie HTML?",
+                options: [
+                    { text: "Hyper Text Markup Language", correct: true },
+                    { text: "Hyper Text Markup List", correct: false },
+                    { text: "Hyper Text Marketing Language", correct: false },
+                    { text: "High Tech Markup Language", correct: false }
+                ],
+                hint: "C'est l'acronyme pour le langage de balisage utilisé pour créer des pages web."
+            },
+            {
+                question: "Quelle balise est utilisée pour créer un paragraphe en HTML?",
+                options: [
+                    { text: "<paragraph>", correct: false },
+                    { text: "<p>", correct: true },
+                    { text: "<para>", correct: false },
+                    { text: "<text>", correct: false }
+                ],
+                hint: "C'est une balise très courte, juste une lettre."
+            },
+            {
+                question: "Quelle balise est utilisée pour insérer une image en HTML?",
+                options: [
+                    { text: "<img>", correct: true },
+                    { text: "<image>", correct: false },
+                    { text: "<picture>", correct: false },
+                    { text: "<photo>", correct: false }
+                ],
+                hint: "C'est une abréviation du mot 'image'."
+            },
+            {
+                question: "Quelle balise est utilisée pour les titres de niveau 1?",
+                options: [
+                    { text: "<heading>", correct: false },
+                    { text: "<h1>", correct: true },
+                    { text: "<title>", correct: false },
+                    { text: "<header>", correct: false }
+                ],
+                hint: "C'est une combinaison d'une lettre et d'un chiffre."
+            },
+            {
+                question: "Quel attribut est utilisé pour spécifier l'URL d'un lien?",
+                options: [
+                    { text: "src", correct: false },
+                    { text: "link", correct: false },
+                    { text: "href", correct: true },
+                    { text: "url", correct: false }
+                ],
+                hint: "C'est une abréviation de 'hypertext reference'."
+            }
+        ];
+        
+        const mediumQuestions = [
+            {
+                question: "Quelle propriété CSS est utilisée pour changer la couleur de fond?",
+                options: [
+                    { text: "color", correct: false },
+                    { text: "background-color", correct: true },
+                    { text: "bgcolor", correct: false },
+                    { text: "background", correct: false }
+                ],
+                hint: "Cette propriété contient spécifiquement le mot 'color'."
+            },
+            {
+                question: "Comment définir une bordure en CSS?",
+                options: [
+                    { text: "border: 1px solid black;", correct: true },
+                    { text: "border-line: 1px solid black;", correct: false },
+                    { text: "border-style: 1px solid black;", correct: false },
+                    { text: "border-width: 1px solid black;", correct: false }
+                ],
+                hint: "La propriété principale est simplement 'border'."
+            },
+            {
+                question: "Quelle balise est utilisée pour créer une liste non ordonnée?",
+                options: [
+                    { text: "<ol>", correct: false },
+                    { text: "<list>", correct: false },
+                    { text: "<ul>", correct: true },
+                    { text: "<unlist>", correct: false }
+                ],
+                hint: "C'est une abréviation de 'unordered list'."
+            },
+            {
+                question: "Quelle balise HTML5 est utilisée pour définir un pied de page?",
+                options: [
+                    { text: "<bottom>", correct: false },
+                    { text: "<footer>", correct: true },
+                    { text: "<end>", correct: false },
+                    { text: "<section>", correct: false }
+                ],
+                hint: "C'est littéralement le mot anglais pour 'pied de page'."
+            },
+            {
+                question: "Quelle propriété CSS est utilisée pour créer de l'espace entre les éléments?",
+                options: [
+                    { text: "spacing", correct: false },
+                    { text: "margin", correct: true },
+                    { text: "padding", correct: false },
+                    { text: "border", correct: false }
+                ],
+                hint: "Cette propriété crée de l'espace à l'extérieur des éléments."
+            }
+        ];
+        
+        const hardQuestions = [
+            {
+                question: "Quelle méthode JavaScript est utilisée pour sélectionner un élément par son ID?",
+                options: [
+                    { text: "document.query()", correct: false },
+                    { text: "document.getElement()", correct: false },
+                    { text: "document.getElementById()", correct: true },
+                    { text: "document.querySelector('#id')", correct: false }
+                ],
+                hint: "Cette méthode contient les mots 'get', 'Element' et 'ById'."
+            },
+            {
+                question: "Quelle propriété CSS est utilisée pour créer une disposition flexible?",
+                options: [
+                    { text: "display: flex;", correct: true },
+                    { text: "position: flexible;", correct: false },
+                    { text: "display: flexbox;", correct: false },
+                    { text: "layout: flex;", correct: false }
+                ],
+                hint: "Il s'agit d'une valeur de la propriété 'display'."
+            },
+            {
+                question: "Quelle est la balise HTML pour intégrer une vidéo?",
+                options: [
+                    { text: "<media>", correct: false },
+                    { text: "<video>", correct: true },
+                    { text: "<movie>", correct: false },
+                    { text: "<play>", correct: false }
+                ],
+                hint: "C'est le mot exact pour 'vidéo' en anglais."
+            },
+            {
+                question: "Quelle pseudo-classe CSS est utilisée pour sélectionner un élément lorsqu'un utilisateur passe la souris dessus?",
+                options: [
+                    { text: ":over", correct: false },
+                    { text: ":focus", correct: false },
+                    { text: ":hover", correct: true },
+                    { text: ":mouse", correct: false }
+                ],
+                hint: "C'est un mot qui signifie 'planer' ou 'survoler' en anglais."
+            },
+            {
+                question: "Quelle propriété CSS permet de contrôler l'espacement entre les lettres?",
+                options: [
+                    { text: "text-spacing", correct: false },
+                    { text: "character-spacing", correct: false },
+                    { text: "letter-spacing", correct: true },
+                    { text: "font-spacing", correct: false }
+                ],
+                hint: "Cette propriété contient littéralement le mot 'letter'."
+            }
+        ];
+
+        // Initialisation des variables
+        let currentQuestions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let selectedOption = null;
+        let timerInterval;
+        let timeLeft = 30;
+        let answeredQuestions = {};
+        let maxScore = 0;
+        let difficulty = 'medium'; // Par défaut
+        let hintsUsed = 0;
+        let leaderboard = JSON.parse(localStorage.getItem('quizLeaderboard')) || [];
+        let timePerQuestion = {};
+        
+        // Éléments DOM
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultsScreen = document.getElementById('results-screen');
+        const startBtn = document.getElementById('start-btn');
+        const optionsContainer = document.getElementById('options-container');
+        const questionText = document.getElementById('question-text');
+        const questionNumber = document.getElementById('question-number');
+        const currentQuestionEl = document.getElementById('current-question');
+        const totalQuestionsEl = document.getElementById('total-questions');
+        const scoreEl = document.getElementById('score');
+
+        const progressBar = document.getElementById('progress-bar');
+        const nextBtn = document.getElementById('next-btn');
+        const previousBtn = document.getElementById('previous-btn');
+        const timerEl = document.getElementById('timer');
+        const finalScoreEl = document.getElementById('final-score');
+        const maxScoreEl = document.getElementById('max-score');
+        const scoreMessageEl = document.getElementById('score-message');
+        const restartBtn = document.getElementById('restart-btn');
+        const shareBtn = document.getElementById('share-btn');
+        const leaderboardList = document.getElementById('leaderboard-list');
+        const nameModal = document.getElementById('name-modal');
+        const modalClose = document.getElementById('modal-close');
+        const nameInput = document.getElementById('name-input');
+        const saveScoreBtn = document.getElementById('save-score-btn');
+        const feedbackEl = document.getElementById('feedback');
+        const hintBtn = document.getElementById('hint-btn');
+        const hintContainer = document.getElementById('hint-container');
+        const hintText = document.getElementById('hint-text');
+        const difficultyIndicator = document.getElementById('difficulty-indicator');
+        const speedBadge = document.getElementById('speed-badge');
+        const accuracyBadge = document.getElementById('accuracy-badge');
+        const knowledgeBadge = document.getElementById('knowledge-badge');
+        const easyBtn = document.getElementById('easy-btn');
+        const mediumBtn = document.getElementById('medium-btn');
+        const hardBtn = document.getElementById('hard-btn');
+        
+        // Sélection de la difficulté
+        easyBtn.addEventListener('click', () => {
+            difficulty = 'easy';
+            easyBtn.style.transform = 'scale(1.1)';
+            mediumBtn.style.transform = 'scale(1)';
+            hardBtn.style.transform = 'scale(1)';
+            timeLeft = 45; // Plus de temps pour les questions faciles
+        });
+        
+        mediumBtn.addEventListener('click', () => {
+            difficulty = 'medium';
+            mediumBtn.style.transform = 'scale(1.1)';
+            easyBtn.style.transform = 'scale(1)';
+            hardBtn.style.transform = 'scale(1)';
+            timeLeft = 30; // Temps standard pour les questions moyennes
+        });
+        
+        hardBtn.addEventListener('click', () => {
+            difficulty = 'hard';
+            hardBtn.style.transform = 'scale(1.1)';
+            easyBtn.style.transform = 'scale(1)';
+            mediumBtn.style.transform = 'scale(1)';
+            timeLeft = 20; // Moins de temps pour les questions difficiles
+        });
+        
+        // Démarrer le quiz
+        startBtn.addEventListener('click', startQuiz);
+        
+        function startQuiz() {
+            startScreen.style.display = 'none';
+            quizScreen.style.display = 'block';
+            
+            // Sélectionner les questions selon la difficulté
+            switch(difficulty) {
+                case 'easy':
+                    currentQuestions = [...easyQuestions];
+                    difficultyIndicator.textContent = 'Facile';
+                    difficultyIndicator.className = 'difficulty-badge easy';
+                    break;
+                case 'hard':
+                    currentQuestions = [...hardQuestions];
+                    difficultyIndicator.textContent = 'Difficile';
+                    difficultyIndicator.className = 'difficulty-badge hard';
+                    break;
+                default:
+                    currentQuestions = [...mediumQuestions];
+                    difficultyIndicator.textContent = 'Moyen';
+                    difficultyIndicator.className = 'difficulty-badge medium';
+            }
+            
+            // Mélanger les questions
+            shuffleArray(currentQuestions);
+            
+            // Initialiser le quiz
+            currentQuestionIndex = 0;
+            score = 0;
+            answeredQuestions = {};
+            hintsUsed = 0;
+            timePerQuestion = {};
+            maxScore = currentQuestions.length * 20; // 20 points max par question
+            
+            // Mettre à jour l'interface
+            totalQuestionsEl.textContent = currentQuestions.length;
+            scoreEl.textContent = score;
+            
+            // Charger la première question
+            loadQuestion();
+        }
+        
+        // Charger une question
+        function loadQuestion() {
+            // Réinitialiser l'état
+            selectedOption = null;
+            nextBtn.disabled = true;
+            
+            // Activer/désactiver le bouton précédent selon la position
+            previousBtn.disabled = currentQuestionIndex === 0;
+            
+            // Mettre à jour les éléments de l'interface
+            currentQuestionEl.textContent = currentQuestionIndex + 1;
+            questionNumber.textContent = `Question ${currentQuestionIndex + 1}`;
+            questionText.textContent = currentQuestions[currentQuestionIndex].question;
+            
+            // Mettre à jour la barre de progression
+            const progressPercent = ((currentQuestionIndex) / currentQuestions.length) * 100;
+            progressBar.style.width = `${progressPercent}%`;
+            
+            // Générer les options
+            generateOptions();
+            
+            // Réinitialiser le feedback
+            feedbackEl.style.display = 'none';
+            
+            // Réinitialiser l'indice
+            hintContainer.style.display = 'none';
+            hintBtn.disabled = false;
+            hintBtn.style.display = 'block';
+            
+            // Si la question a déjà été répondue, restaurer l'état
+            if (answeredQuestions[currentQuestionIndex] !== undefined) {
+                restoreQuestionState();
+                nextBtn.disabled = false;
+            } else {
+                // Sinon, démarrer le minuteur
+                resetTimer();
+                startTimer();
+            }
+            
+            // Ajouter la classe d'animation
+            document.querySelector('.content').classList.remove('fade-in');
+            void document.querySelector('.content').offsetWidth; // Force reflow
+            document.querySelector('.content').classList.add('fade-in');
+        }
+        
+        // Générer les options de réponse
+        function generateOptions() {
+    optionsContainer.innerHTML = '';
+    
+    const currentOptions = currentQuestions[currentQuestionIndex].options;
+    const optionLabels = ['A', 'B', 'C', 'D'];
+    
+    currentOptions.forEach((option, index) => {
+        const optionElement = document.createElement('div');
+        optionElement.className = 'option';
+        
+        // Version simplifiée avec texte intégré directement
+        optionElement.innerHTML = `
+            <strong>${optionLabels[index]}</strong> - ${option.text}
+        `;
+        
+        optionElement.dataset.index = index;
+        optionElement.addEventListener('click', () => selectOption(optionElement, index));
+        optionsContainer.appendChild(optionElement);
+    });
+}
+        
+        // Sélectionner une option
+        function selectOption(optionElement, index) {
+            // Si la question a déjà été répondue, ne rien faire
+            if (answeredQuestions[currentQuestionIndex] !== undefined) return;
+            
+            // Désélectionner toutes les options
+            document.querySelectorAll('.option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // Sélectionner l'option cliquée
+            optionElement.classList.add('selected');
+            selectedOption = index;
+            
+            // Activer le bouton suivant
+            nextBtn.disabled = false;
+        }
+        
+        // Vérifier la réponse
+        function checkAnswer() {
+            if (selectedOption === null) return;
+            
+            // Arrêter le minuteur
+            clearInterval(timerInterval);
+            
+            const isCorrect = currentQuestions[currentQuestionIndex].options[selectedOption].correct;
+            const timeTaken = 30 - timeLeft; // Temps pris pour répondre
+            
+            // Enregistrer le temps pris
+            timePerQuestion[currentQuestionIndex] = timeTaken;
+            
+            // Calculer les points (plus rapide = plus de points)
+            let questionScore = 0;
+            if (isCorrect) {
+                // Base: 10 points pour une réponse correcte + jusqu'à 10 points de bonus pour la rapidité
+                const timeBonus = Math.max(0, 10 - Math.floor(timeTaken / 3));
+                // Pénalité pour l'utilisation d'indices
+                const hintPenalty = hintBtn.disabled ? 5 : 0;
+                questionScore = 10 + timeBonus - hintPenalty;
+            }
+            
+            // Mettre à jour le score
+            score += questionScore;
+            scoreEl.textContent = score;
+            
+            // Mettre à jour l'état de la question
+            answeredQuestions[currentQuestionIndex] = {
+                selectedOption: selectedOption,
+                isCorrect: isCorrect,
+                score: questionScore
+            };
+            
+            // Montrer le feedback
+            feedbackEl.style.display = 'block';
+            feedbackEl.textContent = isCorrect 
+                ? `Correct! +${questionScore} points` 
+                : `Incorrect! La bonne réponse était: ${getCorrectAnswer()}`;
+            feedbackEl.className = isCorrect ? 'feedback correct' : 'feedback wrong';
+            
+            // Mettre à jour l'apparence des options
+            updateOptionsAppearance();
+            
+            // Désactiver le bouton d'indice
+            hintBtn.style.display = 'none';
+        }
+        
+        // Obtenir la réponse correcte
+        function getCorrectAnswer() {
+            const options = currentQuestions[currentQuestionIndex].options;
+            for (let i = 0; i < options.length; i++) {
+                if (options[i].correct) {
+                    return options[i].text;
+                }
+            }
+            return "";
+        }
+        
+        // Mettre à jour l'apparence des options après vérification
+        function updateOptionsAppearance() {
+            const options = document.querySelectorAll('.option');
+            
+            options.forEach((option, index) => {
+                const isCorrect = currentQuestions[currentQuestionIndex].options[index].correct;
+                
+                if (index === selectedOption) {
+                    option.classList.add(isCorrect ? 'correct' : 'wrong');
+                } else if (isCorrect) {
+                    option.classList.add('correct');
+                }
+            });
+        }
+        
+        // Restaurer l'état d'une question déjà répondue
+        function restoreQuestionState() {
+            const questionState = answeredQuestions[currentQuestionIndex];
+            const options = document.querySelectorAll('.option');
+            
+            // Restaurer l'option sélectionnée
+            selectedOption = questionState.selectedOption;
+            options[selectedOption].classList.add('selected');
+            
+            // Mettre à jour l'apparence des options
+            updateOptionsAppearance();
+            
+            // Afficher le feedback
+            feedbackEl.style.display = 'block';
+            feedbackEl.textContent = questionState.isCorrect 
+                ? `Correct! +${questionState.score} points` 
+                : `Incorrect! La bonne réponse était: ${getCorrectAnswer()}`;
+            feedbackEl.className = questionState.isCorrect ? 'feedback correct' : 'feedback wrong';
+            
+            // Désactiver le bouton d'indice
+            hintBtn.style.display = 'none';
+        }
+        
+        // Passer à la question suivante
+        function nextQuestion() {
+            // Si la question actuelle n'a pas été répondue, vérifier la réponse
+            if (answeredQuestions[currentQuestionIndex] === undefined) {
+                checkAnswer();
+            }
+            
+            // Passer à la question suivante
+            currentQuestionIndex++;
+            
+            // Si c'est la dernière question, terminer le quiz
+            if (currentQuestionIndex >= currentQuestions.length) {
+                endQuiz();
+                return;
+            }
+            
+            // Charger la question suivante
+            loadQuestion();
+        }
+        
+        // Revenir à la question précédente
+        function previousQuestion() {
+            if (currentQuestionIndex > 0) {
+                // Arrêter le minuteur
+                clearInterval(timerInterval);
+                
+                // Revenir à la question précédente
+                currentQuestionIndex--;
+                loadQuestion();
+            }
+        }
+        
+        // Terminer le quiz
+        function endQuiz() {
+            quizScreen.style.display = 'none';
+            resultsScreen.style.display = 'block';
+            
+            // Mettre à jour le score final
+            finalScoreEl.textContent = score;
+            maxScoreEl.textContent = maxScore;
+            
+            // Calculer les statistiques
+            const correctAnswers = Object.values(answeredQuestions).filter(a => a.isCorrect).length;
+            const accuracy = (correctAnswers / currentQuestions.length) * 100;
+            const averageTime = Object.values(timePerQuestion).reduce((sum, time) => sum + time, 0) / currentQuestions.length;
+            
+            // Attribuer des badges
+            // Badge de rapidité
+            if (averageTime < 10) {
+                speedBadge.textContent = "🥇";
+            } else if (averageTime < 15) {
+                speedBadge.textContent = "🥈";
+            } else {
+                speedBadge.textContent = "🥉";
+            }
+            
+            // Badge de précision
+            if (accuracy >= 90) {
+                accuracyBadge.textContent = "🥇";
+            } else if (accuracy >= 70) {
+                accuracyBadge.textContent = "🥈";
+            } else {
+                accuracyBadge.textContent = "🥉";
+            }
+            
+            // Badge de connaissances
+            const scorePercentage = (score / maxScore) * 100;
+            if (scorePercentage >= 85) {
+                knowledgeBadge.textContent = "🥇";
+                scoreMessageEl.textContent = "Excellent! Vous maîtrisez très bien le HTML.";
+            } else if (scorePercentage >= 65) {
+                knowledgeBadge.textContent = "🥈";
+                scoreMessageEl.textContent = "Bien joué! Vous avez de bonnes connaissances en HTML.";
+            } else {
+                knowledgeBadge.textContent = "🥉";
+                scoreMessageEl.textContent = "Pas mal! Continuez à pratiquer pour améliorer vos connaissances en HTML.";
+            }
+            
+            // Animer les confettis si le score est bon
+            if (scorePercentage >= 70) {
+                createConfetti();
+            }
+            
+            // Mettre à jour le classement
+            updateLeaderboard();
+            
+            // Ouvrir la modale pour enregistrer le score
+            setTimeout(() => {
+                nameModal.style.display = 'flex';
+            }, 1500);
+        }
+        
+        // Mettre à jour le classement
+        function updateLeaderboard() {
+            leaderboardList.innerHTML = '';
+            
+            // Trier le classement par score
+            const sortedLeaderboard = [...leaderboard].sort((a, b) => b.score - a.score);
+            
+            // Limiter à 5 meilleurs scores
+            const topScores = sortedLeaderboard.slice(0, 5);
+            
+            // Afficher les scores
+            topScores.forEach((entry, index) => {
+                const leaderboardItem = document.createElement('div');
+                leaderboardItem.className = 'leaderboard-item';
+                leaderboardItem.innerHTML = `
+                    <div class="leaderboard-rank">${index + 1}</div>
+                    <div class="leaderboard-name">${entry.name}</div>
+                    <div class="leaderboard-score">${entry.score}pts</div>
+                `;
+                leaderboardList.appendChild(leaderboardItem);
+            });
+        }
+        
+        // Enregistrer le score dans le classement
+        function saveScore() {
+            const name = nameInput.value.trim();
+            if (name) {
+                const newScore = {
+                    name: name,
+                    score: score,
+                    date: new Date().toISOString(),
+                    difficulty: difficulty
+                };
+                
+                leaderboard.push(newScore);
+                localStorage.setItem('quizLeaderboard', JSON.stringify(leaderboard));
+                
+                updateLeaderboard();
+                nameModal.style.display = 'none';
+            }
+        }
+        
+        // Partager le score
+        function shareScore() {
+            const text = `J'ai obtenu ${score}/${maxScore} points au Quiz HTML! Pouvez-vous faire mieux? #HTMLQuiz #WebDev`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Mon score au Quiz HTML',
+                    text: text,
+                    url: window.location.href
+                }).catch(error => {
+                    console.error('Erreur lors du partage:', error);
+                    fallbackShare();
+                });
+            } else {
+                fallbackShare();
+            }
+            
+            function fallbackShare() {
+                // Copier le texte dans le presse-papier
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                
+                alert('Texte copié dans le presse-papier: ' + text);
+            }
+        }
+        
+        // Démarrer le minuteur
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerEl.textContent = timeLeft;
+                
+                // Ajouter un avertissement visuel quand il reste peu de temps
+                if (timeLeft <= 5) {
+                    timerEl.classList.add('timer-warning');
+                }
+                
+                // Si le temps est écoulé
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    
+                    // Si aucune option n'est sélectionnée, en sélectionner une au hasard
+                    if (selectedOption === null) {
+                        const randomOption = Math.floor(Math.random() * 4);
+                        const options = document.querySelectorAll('.option');
+                        options[randomOption].classList.add('selected');
+                        selectedOption = randomOption;
+                    }
+                    
+                    checkAnswer();
+                    nextBtn.disabled = false;
+                }
+            }, 1000);
+        }
+        
+        // Réinitialiser le minuteur
+        function resetTimer() {
+            clearInterval(timerInterval);
+            switch(difficulty) {
+                case 'easy':
+                    timeLeft = 45;
+                    break;
+                case 'hard':
+                    timeLeft = 20;
+                    break;
+                default:
+                    timeLeft = 30;
+            }
+            timerEl.textContent = timeLeft;
+            timerEl.classList.remove('timer-warning');
+        }
+        
+        // Afficher un indice
+        function showHint() {
+            hintContainer.style.display = 'block';
+            hintText.textContent = "Indice: " + currentQuestions[currentQuestionIndex].hint;
+            hintBtn.disabled = true;
+            hintsUsed++;
+        }
+        
+        // Créer des confettis
+        function createConfetti() {
+            const confettiCount = 150;
+            const colors = ['#f94144', '#f3722c', '#f8961e', '#f9c74f', '#90be6d', '#43aa8b', '#577590'];
+            
+            for (let i = 0; i < confettiCount; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                    document.body.appendChild(confetti);
+                    
+                    // Supprimer les confettis après l'animation
+                    setTimeout(() => {
+                        confetti.remove();
+                    }, 5000);
+                }, i * 20);
+            }
+        }
+        
+        // Fonction pour mélanger un tableau
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+        
+        // Event listeners
+        nextBtn.addEventListener('click', nextQuestion);
+        previousBtn.addEventListener('click', previousQuestion);
+        restartBtn.addEventListener('click', () => {
+            resultsScreen.style.display = 'none';
+            startScreen.style.display = 'block';
+        });
+        shareBtn.addEventListener('click', shareScore);
+        modalClose.addEventListener('click', () => {
+            nameModal.style.display = 'none';
+        });
+        saveScoreBtn.addEventListener('click', saveScore);
+        hintBtn.addEventListener('click', showHint);
+        
+        // Fermer la modale si on clique en dehors
+        window.addEventListener('click', (e) => {
+            if (e.target === nameModal) {
+                nameModal.style.display = 'none';
+            }
+        });
+        
+        // Initialiser le classement au chargement
+        updateLeaderboard();
+    </script>
+</body>
+</html>
