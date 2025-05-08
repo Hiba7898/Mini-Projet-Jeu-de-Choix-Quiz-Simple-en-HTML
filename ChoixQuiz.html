@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Quiz HTML pour Débutants</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f8fa;
+        }
+        
+        .quiz-container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-top: 50px;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .question {
+            margin-bottom: 30px;
+            border-left: 4px solid #3498db;
+            padding-left: 15px;
+        }
+        
+        .options {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .option {
+            background-color: #f1f5f9;
+            border: 2px solid #e2e8f0;
+            border-radius: 5px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .option:hover {
+            background-color: #e2e8f0;
+            transform: translateY(-2px);
+        }
+        
+        .selected {
+            background-color: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+        
+        .correct {
+            background-color: #2ecc71;
+            color: white;
+            border-color: #2ecc71;
+        }
+        
+        .wrong {
+            background-color: #e74c3c;
+            color: white;
+            border-color: #e74c3c;
+        }
+        
+        .result {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        
+        .score-container {
+            text-align: center;
+            margin: 30px 0;
+            font-size: 1.2rem;
+        }
+        
+        .progress {
+            height: 10px;
+            background-color: #ecf0f1;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: #3498db;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <h1>Quiz HTML pour Débutants</h1>
+        
+        <div class="progress">
+            <div class="progress-bar" id="progress"></div>
+        </div>
+        
+        <div class="score-container">
+            <span>Score: <span id="score">0</span>/<span id="total-questions">5</span></span>
+        </div>
+        
+        <div id="question-container">
+            <div class="question">
+                <h2 id="question-text">1. Que signifie HTML?</h2>
+                <div class="options" id="options">
+                    <div class="option" data-correct="false" onclick="selectOption(this)">A. Hyper Text Markup List</div>
+                    <div class="option" data-correct="true" onclick="selectOption(this)">B. Hyper Text Markup Language</div>
+                    <div class="option" data-correct="false" onclick="selectOption(this)">C. High Tech Modern Language</div>
+                    <div class="option" data-correct="false" onclick="selectOption(this)">D. Hyper Technical Modern Layout</div>
+                </div>
+            </div>
+            
+            <div class="result" id="result"></div>
+            
+            <div class="controls">
+                <button id="check-btn" onclick="checkAnswer()">Vérifier</button>
+                <button id="next-btn" onclick="nextQuestion()" disabled>Question Suivante</button>
+            </div>
+        </div>
+        
+        <div id="final-results" style="display: none; text-align: center;">
+            <h2>Quiz Terminé!</h2>
+            <p>Votre score final: <span id="final-score">0</span>/<span id="final-total">5</span></p>
+            <button onclick="restartQuiz()">Recommencer le Quiz</button>
+        </div>
+    </div>
+
+    <script>
+        // Questions du quiz
+        const questions = [
+            {
+                question: "1. Que signifie HTML?",
+                options: [
+                    { text: "A. Hyper Text Markup List", correct: false },
+                    { text: "B. Hyper Text Markup Language", correct: true },
+                    { text: "C. High Tech Modern Language", correct: false },
+                    { text: "D. Hyper Technical Modern Layout", correct: false }
+                ]
+            },
+            {
+                question: "2. Quelle balise est utilisée pour créer un paragraphe en HTML?",
+                options: [
+                    { text: "A. <paragraph>", correct: false },
+                    { text: "B. <par>", correct: false },
+                    { text: "C. <p>", correct: true },
+                    { text: "D. <para>", correct: false }
+                ]
+            },
+            {
+                question: "3. Quelle balise est utilisée pour insérer une image en HTML?",
+                options: [
+                    { text: "A. <img>", correct: true },
+                    { text: "B. <image>", correct: false },
+                    { text: "C. <picture>", correct: false },
+                    { text: "D. <src>", correct: false }
+                ]
+            },
+            {
+                question: "4. Comment créer un lien hypertexte en HTML?",
+                options: [
+                    { text: "A. <link href='url'>texte</link>", correct: false },
+                    { text: "B. <a url='lien'>texte</a>", correct: false },
+                    { text: "C. <a href='url'>texte</a>", correct: true },
+                    { text: "D. <hyperlink='url'>texte</hyperlink>", correct: false }
+                ]
+            },
+            {
+                question: "5. Quelle balise est utilisée pour créer un titre de niveau 1 en HTML?",
+                options: [
+                    { text: "A. <title>", correct: false },
+                    { text: "B. <header>", correct: false },
+                    { text: "C. <h1>", correct: true },
+                    { text: "D. <heading1>", correct: false }
+                ]
+            }
+        ];
+        
+        let currentQuestion = 0;
+        let score = 0;
+        let selectedOption = null;
+        
+        // Sélectionner une option
+        function selectOption(option) {
+            // Désélectionner toutes les options
+            const options = document.querySelectorAll('.option');
+            options.forEach(opt => opt.classList.remove('selected'));
+            
+            // Sélectionner l'option cliquée
+            option.classList.add('selected');
+            selectedOption = option;
+            
+            // Activer le bouton de vérification
+            document.getElementById('check-btn').disabled = false;
+        }
+        
+        // Vérifier la réponse
+        function checkAnswer() {
+            if (!selectedOption) return;
+            
+            const isCorrect = selectedOption.getAttribute('data-correct') === 'true';
+            
+            // Afficher si la réponse est correcte ou non
+            if (isCorrect) {
+                selectedOption.classList.add('correct');
+                document.getElementById('result').textContent = "Correct! 👍";
+                document.getElementById('result').style.backgroundColor = "#2ecc71";
+                score++;
+                document.getElementById('score').textContent = score;
+            } else {
+                selectedOption.classList.add('wrong');
+                document.getElementById('result').textContent = "Incorrect! 😕";
+                document.getElementById('result').style.backgroundColor = "#e74c3c";
+                
+                // Montrer la bonne réponse
+                const options = document.querySelectorAll('.option');
+                options.forEach(opt => {
+                    if (opt.getAttribute('data-correct') === 'true') {
+                        opt.classList.add('correct');
+                    }
+                });
+            }
+            
+            document.getElementById('result').style.display = 'block';
+            document.getElementById('check-btn').disabled = true;
+            document.getElementById('next-btn').disabled = false;
+            
+            // Désactiver les clics sur les options
+            const options = document.querySelectorAll('.option');
+            options.forEach(opt => opt.onclick = null);
+        }
+        
+        // Passer à la question suivante
+        function nextQuestion() {
+            currentQuestion++;
+            
+            // Mettre à jour la barre de progression
+            const progressPercent = (currentQuestion / questions.length) * 100;
+            document.getElementById('progress').style.width = `${progressPercent}%`;
+            
+            if (currentQuestion < questions.length) {
+                // Charger la question suivante
+                loadQuestion(questions[currentQuestion]);
+            } else {
+                // Afficher les résultats finaux
+                document.getElementById('question-container').style.display = 'none';
+                document.getElementById('final-results').style.display = 'block';
+                document.getElementById('final-score').textContent = score;
+                document.getElementById('final-total').textContent = questions.length;
+            }
+        }
+        
+        // Charger une question
+        function loadQuestion(question) {
+            selectedOption = null;
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('check-btn').disabled = false;
+            document.getElementById('next-btn').disabled = true;
+            
+            // Définir le texte de la question
+            document.getElementById('question-text').textContent = question.question;
+            
+            // Charger les options
+            const optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = '';
+            
+            question.options.forEach(option => {
+                const optionElement = document.createElement('div');
+                optionElement.className = 'option';
+                optionElement.textContent = option.text;
+                optionElement.setAttribute('data-correct', option.correct);
+                optionElement.onclick = function() { selectOption(this); };
+                optionsContainer.appendChild(optionElement);
+            });
+        }
+        
+        // Redémarrer le quiz
+        function restartQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            document.getElementById('score').textContent = 0;
+            document.getElementById('question-container').style.display = 'block';
+            document.getElementById('final-results').style.display = 'none';
+            document.getElementById('progress').style.width = '0%';
+            loadQuestion(questions[0]);
+        }
+    </script>
+</body>
+</html>
